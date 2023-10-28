@@ -1,5 +1,6 @@
 {
   "expo": {
+    "jsEngine": "hermes",
     "name": "DispensasApp",
     "slug": "DispensasApp",
     "version": "1.0.0",
