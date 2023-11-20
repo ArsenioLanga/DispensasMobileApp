@@ -13,7 +13,7 @@ Uma aplicação android para controle de despesas e gastos dentro de uma organiz
 - <a href="#-autores">Pessoas autoras</a>
 - <a href="#-futuro">Proximos passos</a>
 
-## 📞 Funcionalidades da Aplicação
+## Funcionalidades da Aplicação
 - [x] Registar Despesas
 - [x] Editar Despesas Desvolvida
 - [x] Listar todas Despesas
