@@ -1,16 +1,16 @@
 {
   "expo": {
     "jsEngine": "hermes",
-    "name": "DispensasApp",
+    "name": "Meus Gastos",
     "slug": "DispensasApp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#00b4d8"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -19,13 +19,20 @@
       "supportsTablet": true
     },
     "android": {
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
+        "backgroundColor": "#00b4d8"
+      },
+      "package": "com.arsenio_langa.DespensasApp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "1872488c-03a6-4899-887d-87c7636dc4ff"
+      }
     }
   }
 }

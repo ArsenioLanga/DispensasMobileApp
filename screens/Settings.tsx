@@ -2,55 +2,54 @@ import {Text, View, Alert} from "react-native"
 import { ListItem } from "../components/LidstItem"
 import { Entypo } from '@expo/vector-icons'; 
 import { theme } from "../Theme";
+import { useEffect } from "react";
+import * as SQLite from 'expo-sqlite';
 
 
 
 export const Settings = ({navigation}) => {
+ // Abra o banco de dados (você pode escolher qualquer nome)
+ const db = SQLite.openDatabase('RentCarDespesaApp.db');
+
+   
+ const eliminarSessao = () => {
+      db.transaction((tx) => {
+            tx.executeSql(
+              'DELETE FROM sessions;',
+              [],
+              (_, { rowsAffected }) => {
+                if (rowsAffected > 0) {
+                  console.log('Sessão encerrada com sucesso.');
+                  // Realize outras ações de encerramento de sessão, como navegar para a tela de login
+                } else {
+                  console.log('Nenhuma sessão para encerrar.');
+                }
+              }
+            );
+            navigation.navigate("Welcome")
+          });
+      }
+
       return(
       <View style={{
             margin: 16,
             borderRadius: 11,
             overflow: "hidden"
             }}>
-            <ListItem
-                  label="Tipo de despensa"
-                  detail={<Entypo name="chevron-right" size={40} color="white" style={{opacity: 0.3}}/>}
-                  onClick={() => { 
-                        navigation.navigate("Categorias")
-                  }}
-            />
-               <ListItem
-                  label="Veículos"
-                  detail={<Entypo name="chevron-right" size={40} color="white" style={{opacity: 0.3}}/>}
-                  onClick={() => { 
-                        navigation.navigate("Veiculos")
-                  }}
-            />
+           
               <ListItem
-                  label="Motoristas"
-                  detail={<Entypo name="chevron-right" size={40} color="white" style={{opacity: 0.3}}/>}
-                  onClick={() => { 
-                        navigation.navigate("Motoristas")
-                  }}
-            />
-              <ListItem
-                  label="Reportar eventualidades"
+                  label="Sair da aplicação"
                   detail={<Entypo name="chevron-right" size={40} color="white" style={{opacity: 0.3}}/>}
                   onClick={() => {
-
-                  }}
-            />
-              <ListItem
-                  label="Reiniciar a aplicação"
-                  isDestructive
-                  onClick={() => {
-                        Alert.alert("Tem certeza?", "Esta opção é inreversivel", [
+                        Alert.alert("Tem certeza?", "Pretende sair da aplicação?", [
                               {
                                     text: 'Cancel',
                                     onPress: () => console.log('Cancel Pressed'),
                                     style: 'cancel',
                                   },
-                                  {text: 'OK', style: "destructive", onPress: () => console.log('OK Pressed')},
+                                  {text: 'OK', onPress: () => {
+                                    eliminarSessao()
+                                  }},
                         ],{
                               userInterfaceStyle: 'dark',
                         })
