@@ -38,8 +38,4 @@ export const Home = ({ route }) => {
   );
 }
 
-// {isConnected ? (
-//   <Ionicons name="md-checkmark-circle" color="green" size={20} />
-// ) : (
-//   <Ionicons name="md-close-circle" color="red" size={20} />
-// )}
+

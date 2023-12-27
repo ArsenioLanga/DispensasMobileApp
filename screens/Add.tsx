@@ -1,4 +1,4 @@
-import { Text, View, TextInput, ScrollView, Image, Platform, TouchableOpacity, Pressable } from "react-native"
+import { Text, View, TextInput, ScrollView, Image, Platform, TouchableOpacity, Pressable, Alert } from "react-native"
 import { Picker, type PickerItem } from 'react-native-woodpicker'
 import * as SQLite from 'expo-sqlite';
 import { useState, useEffect } from 'react';
@@ -17,7 +17,7 @@ import COLORS from '../constants/colors';
 import Button from '../components/Button';
 import NetInfo from "@react-native-community/netinfo";
 import { AntDesign } from '@expo/vector-icons';
-
+import * as ImageManipulator from 'expo-image-manipulator';
 
 
 export const Add = ({ navigation }) => {
@@ -163,20 +163,6 @@ export const Add = ({ navigation }) => {
             } catch (error) {
                   console.log('Erro durante a leitura da tabela:', error);
             }
-
-      }
-
-      // Verificar se existe conexão 
-      const verificarConexao = () => {
-            //  getDespesa();
-            const unsubscribe = NetInfo.addEventListener((state) => {
-                  console.log("Está conectado à internet!");
-                  //  getDespesaAdd();
-            });
-            return () => {
-                  // Certifique-se de cancelar a inscrição ao desmontar o componente
-                  unsubscribe();
-            };
 
       }
 
@@ -495,27 +481,67 @@ export const Add = ({ navigation }) => {
                   toggleDatePicker();
             }
       }
-      const savePhotoToLibrary = async (photoUri) =>  {
+      // const savePhotoToLibrary = async (photoUri) =>  {
+      //       if (!permissionsGranted) {
+      //             const { status } = await MediaLibrary.requestPermissionsAsync();
+      //             if (status === 'granted') {
+      //               setPermissionsGranted(true);
+      //             } else {
+      //               showToastPermission()
+      //               return null;
+      //             }
+      //           }    
+      //           try {
+      //             const asset = await MediaLibrary.createAssetAsync(photoUri);
+      //             console.log('Foto salva na biblioteca de mídia com ID:', asset.id);
+      //             setId(asset.id);
+      //             setFotoId(asset.id);
+      //             return asset.id || null;
+      //           } catch (error) {
+      //             showToastSalvar()
+      //             return null;
+      //           }
+      //     }
+
+
+      const savePhotoToLibrary = async (photoUri) => {
             if (!permissionsGranted) {
-                  const { status } = await MediaLibrary.requestPermissionsAsync();
-                  if (status === 'granted') {
-                    setPermissionsGranted(true);
-                  } else {
-                    showToastPermission()
-                    return null;
-                  }
-                }    
-                try {
-                  const asset = await MediaLibrary.createAssetAsync(photoUri);
-                  console.log('Foto salva na biblioteca de mídia com ID:', asset.id);
-                  setId(asset.id);
-                  setFotoId(asset.id);
-                  return asset.id || null;
-                } catch (error) {
-                  showToastSalvar()
+            const { status } = await MediaLibrary.requestPermissionsAsync();
+            if (status === 'granted') {
+                  setPermissionsGranted(true);
+            } else {
+                  console.log('Permissão para acessar a biblioteca de mídia não concedida.');
                   return null;
-                }
-          }
+            }
+            }
+
+            try {
+            // Comprimir a imagem antes de salvar
+            const compressedImage = await compressImage(photoUri);
+            
+            // Salvar a imagem comprimida na biblioteca de mídia
+            const asset = await MediaLibrary.createAssetAsync(compressedImage.uri);
+            
+            console.log('Foto salva na biblioteca de mídia com ID:', asset.id);
+            setId(asset.id);
+            setFotoId(asset.id);
+            return asset.id || null;
+            } catch (error) {
+            console.log('Erro ao salvar a foto na biblioteca de mídia:', error);
+            return null;
+            }
+      };
+
+      const compressImage = async (photoUri) => {
+      const compressedImage = await ImageManipulator.manipulateAsync(
+      photoUri,
+      [{ resize: { width: 800, height: 800 } }],
+      { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
+      );
+
+      return compressedImage;
+      };
+
 
       const takePicture = async () => {
             if (cameraRef) {
@@ -537,12 +563,25 @@ export const Add = ({ navigation }) => {
           
             return randomString;
           }
+
+          function generateRandomString2(length) {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let randomString = '';
+          
+            for (let i = 0; i < length; i++) {
+              const randomIndex = Math.floor(Math.random() * characters.length);
+              randomString += characters.charAt(randomIndex);
+            }
+          
+            return randomString;
+          }
    
       const addDespesa = async () => {
             setIsSpinnerVisible(true);
             if (local === null || nrdoc === null || viatura === null || quantidade === null || tipoDespesa === null || total === null || dataDoc === null) {
                   setIsSpinnerVisible(false);
                   showToastValidTextField();
+                  return
                  } else {
       
                   if(viatura.length < 10){
@@ -618,7 +657,9 @@ export const Add = ({ navigation }) => {
                   let contagem = 0;
                   let total2 = total+".0"
                   const motivo = "null"
-                  const randonId = generateRandomString(6)
+                  let randonId = generateRandomString(6);
+                 // randonId += generateRandomString2(4);
+                  randonId += fotoId;
       
                   // Converter as datas para objetos Moment
                   const dataNowObj = moment(dataNow, "ddd MMM DD YYYY");
@@ -633,7 +674,9 @@ export const Add = ({ navigation }) => {
                
                   // Iterar pelos objetos e verificar se a despesa ja foi registada
                   despesas.forEach(objeto => {
-                        if (objeto.dataDoc === dataDoc && objeto.nrDoc === nrdoc && objeto.total === total2) {
+                        // if (objeto.dataDoc === dataDoc && objeto.nrDoc === nrdoc && objeto.total === total2) {
+                        
+                        if (objeto.dataDoc === dataDoc && objeto.nrDoc === nrdoc && objeto.total === total) {
                          contagem++;
                         }
                   });
@@ -641,6 +684,7 @@ export const Add = ({ navigation }) => {
                   if (contagem >= 1) {
                         setIsSpinnerVisible(false);
                         showToastValidRepetir()
+                        return
                       } else {
                        try {
                         db.transaction(
@@ -880,7 +924,7 @@ export const Add = ({ navigation }) => {
                                                             <Text style={{
                                                                   fontSize: 16,
                                                                   marginVertical: 8
-                                                            }}>Data Doc</Text>
+                                                            }}>Data do Documento</Text>
 
                                                             <View style={{
                                                                   width: "100%",

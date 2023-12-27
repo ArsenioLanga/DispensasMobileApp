@@ -22,7 +22,6 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { RadioButton } from 'react-native-paper';
 import Toast from 'react-native-toast-message';
 import moment from 'moment';
-import * as ImageManipulator from 'expo-image-manipulator';
 
 
 export const Expenses = ({ route }) => {
@@ -233,8 +232,8 @@ export const Expenses = ({ route }) => {
             const updatePromise = new Promise<void>((resolveUpdate, rejectUpdate) => {
               db.transaction((tx) => {
                 tx.executeSql(
-                  'UPDATE despesaMotoristas SET status = ?, motivo = ?, total = ?, valorDespesa = ?, qtdDespesa = ?  WHERE random = ?',
-                  [item.status, item.motivo, item.total, item.valorDespesa, item.qtdDespesa, item.random],
+                  'UPDATE despesaMotoristas SET status = ?, motivo = ?, total = ?, valorDespesa = ?, qtdDespesa = ?  WHERE id = ?',
+                  [item.status, item.motivo, item.total, item.valorDespesa, item.qtdDespesa, item.id],
                   (tx, results) => {
                     console.log("Atualizado " + item.tipoDespesa);
                     resolveUpdate(); // Resolva sem argumento
@@ -750,8 +749,8 @@ export const Expenses = ({ route }) => {
   const getDespesaDadata = async () => {
     db.transaction((tx) => {
       tx.executeSql(
-        'SELECT * FROM despesaMotoristas WHERE random = ?',
-        [idDespesa],
+        'SELECT * FROM despesaMotoristas WHERE id = ?',
+        [id],
         (_, { rows }) => {
           if (rows.length > 0) {
             const sessionData = rows.item(0);
@@ -788,71 +787,29 @@ export const Expenses = ({ route }) => {
     console.log('Foto salva na galeria' + fotoId);
   };
 
-  // const savePhotoToLibrary = async (photoUri) => {
-  //   if (!permissionsGranted) {
-  //     const { status } = await MediaLibrary.requestPermissionsAsync();
-  //     if (status === 'granted') {
-  //       setPermissionsGranted(true);
-  //     } else {
-  //       console.log('Permissão para acessar a biblioteca de mídia não concedida.');
-  //       return null;
-  //     }
-  //   }
-
-  //   try {
-  //     const asset = await MediaLibrary.createAssetAsync(photoUri);
-  //     console.log('Foto salva na biblioteca de mídia com ID:', asset.id);
-  //     setId(asset.id);
-  //     setFotoId(asset.id);
-  //     setIsViewVisibleData(true)
-  //     return asset.id || null;
-  //   } catch (error) {
-  //     console.log('Erro ao salvar a foto na biblioteca de mídia:', error);
-  //     return null;
-  //   }
-  // };
-
- 
-
   const savePhotoToLibrary = async (photoUri) => {
-      if (!permissionsGranted) {
+    if (!permissionsGranted) {
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status === 'granted') {
-            setPermissionsGranted(true);
+        setPermissionsGranted(true);
       } else {
-            console.log('Permissão para acessar a biblioteca de mídia não concedida.');
-            return null;
+        console.log('Permissão para acessar a biblioteca de mídia não concedida.');
+        return null;
       }
-      }
+    }
 
-      try {
-      // Comprimir a imagem antes de salvar
-      const compressedImage = await compressImage(photoUri);
-      
-      // Salvar a imagem comprimida na biblioteca de mídia
-      const asset = await MediaLibrary.createAssetAsync(compressedImage.uri);
-      
+    try {
+      const asset = await MediaLibrary.createAssetAsync(photoUri);
       console.log('Foto salva na biblioteca de mídia com ID:', asset.id);
       setId(asset.id);
       setFotoId(asset.id);
-      setIsViewVisibleData(true);
+      setIsViewVisibleData(true)
       return asset.id || null;
-      } catch (error) {
+    } catch (error) {
       console.log('Erro ao salvar a foto na biblioteca de mídia:', error);
       return null;
-      }
+    }
   };
-
-  const compressImage = async (photoUri) => {
-    const compressedImage = await ImageManipulator.manipulateAsync(
-    photoUri,
-    [{ resize: { width: 800, height: 800 } }],
-    { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
-    );
-
-    return compressedImage;
-  };
-
 
   const takePicture = async () => {
     if (cameraRef) {
@@ -946,7 +903,7 @@ export const Expenses = ({ route }) => {
             )}
             {despesa.status === 'Devolvido' && (
               <Text style={{ color: 'black', fontSize: 14 }}>
-                <Text style={{ color: "black", fontSize: 14 }}> <EvilIcons onPress={() => { setId(despesa.random), setIdDespesa(despesa.random), setPhotoUri(null); setShowCamera(true); }} name="pencil" color={COLORS.orange} size={34} /></Text>
+                <Text style={{ color: "black", fontSize: 14 }}> <EvilIcons onPress={() => { setId(despesa.id), setIdDespesa(despesa.id), setPhotoUri(null); setShowCamera(true); }} name="pencil" color={COLORS.orange} size={34} /></Text>
               </Text>
             )}
             {despesa.status !== 'Pendente' && despesa.status !== 'Devolvido' && (
@@ -1161,7 +1118,7 @@ export const Expenses = ({ route }) => {
       try {
         db.transaction(tx => {
           tx.executeSql(
-            "UPDATE despesaMotoristas SET idFoto = ?, local = ?, url = ?, viatura = ?, nrDoc = ?, tipoDespesa = ?, valorDespesa = ?, qtdDespesa = ?, total = ?, status = ?, dataDoc = ?, observacao = ?, tipoCombustivel = ?, updated_at = ?  WHERE random = ?",
+            "UPDATE despesaMotoristas SET idFoto = ?, local = ?, url = ?, viatura = ?, nrDoc = ?, tipoDespesa = ?, valorDespesa = ?, qtdDespesa = ?, total = ?, status = ?, dataDoc = ?, observacao = ?, tipoCombustivel = ?, updated_at = ?  WHERE id = ?",
             [fotoId, local, url, viatura, nrdoc, tipoDespesa, valorDespesa, quantidade, total, estado, dataDoc, observacao, tipoCombustivel, updated_at, idDespesa],
             (_, resultSet) => {
               // (_, resultSet) => {
